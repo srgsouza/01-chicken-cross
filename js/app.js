@@ -31,13 +31,14 @@ class Vehicles {
 }
 
 class Road {
-  constructor(centerY) {
+  constructor(topY) {
+    this.topY = topY;
     this.roadWidth = canvas.height / 4;
     this.laneWidth = this.roadWidth / 3;
-    this.roadCenter = this.roadWidth - this.roadWidth / 2;
     this.dashLength = canvas.width / 10;
     this.lineWidth = 3;
-    this.centerY = centerY;
+    this.roadCenterY = topY + this.roadWidth - this.roadWidth / 2;
+    this.topYToCenterDraw = topY - this.roadWidth / 2;  
   }
 }
 
@@ -48,7 +49,9 @@ for (let i = 0; i < 10; i++ ) {
 }
 
 // Create instances of roads
-let road = new Road();
+const topRoad = new Road( (canvas.height / 2) - (canvas.height / 6) );
+const bottomRoad = new Road((canvas.height / 2) + (canvas.height / 6));
+
 
 // initial traffic (vehicles on road at the start of the game)
 // onRoad.push(vehicles.shift(0, 1));
@@ -63,8 +66,8 @@ const drawVehicle = (vehicle) => {
   drawRect(vehicle.x, vehicle.y, vehicle.width, vehicle.height, vehicle.color); 
 }
 
-// Draw Lanes (proportinal to the canvas size)
-const drawRoad = (topY) => {
+// Draw Lanes (proportinal to the canvas size) - takes a road object and the Y coordinate as parameters
+const drawRoad = (road, topY) => {
   drawRect(0, topY, canvas.width, road.roadWidth, 'gray'); // road tarmac
   drawRect(0, topY, canvas.width, road.lineWidth, 'white'); // road line (top)
   drawRect(0, topY + road.roadWidth - road.lineWidth, canvas.width, road.lineWidth, 'white'); //road line (bottom)
@@ -84,11 +87,11 @@ const drawRect = (leftX, topY, width, height, drawColor) => {
 const drawEverything = () => {
   // const roadCenter = road.roadWidth - road.roadWidth/2;
   // Set top and bottom roads (y) equaly spaced away from the center of the canvas  
-  const topRoadY = (canvas.height / 2) - road.roadCenter - road.roadCenter * 1.5; 
-  const bottomRoadY = (canvas.height / 2) - road.roadCenter + road.roadCenter * 1.5;
+  // const topRoadY = (canvas.height / 2) - road.roadCenter - road.roadCenter * 1.5; 
+  const bottomRoadY = (canvas.height / 2) - topRoad.roadCenter + topRoad.roadCenter * 1.5;
   drawRect(0, 0, canvas.width, canvas.height, 'green'); // draw anvas
-  drawRoad(topRoadY); // top lane
-  drawRoad(bottomRoadY); // bottom lane
+  drawRoad(topRoad, topRoad.topYToCenterDraw); // top road
+  drawRoad(bottomRoad, bottomRoad.topYToCenterDraw); // bottom road
   drawRect(chickenX, chickenY, chickenWidth, chickenHeight, 'yellow'); // draw chicken
   if (onRoad.length > 0) {
     onRoad.forEach(element => {  // vehicles of the onRoad array
