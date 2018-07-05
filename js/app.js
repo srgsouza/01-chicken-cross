@@ -1,8 +1,12 @@
+// ########################################################################################################################
+// ################################ GLOBAL VARIABLES AND OBJECTS ##############################################################
+// ########################################################################################################################
+
 //  Global Variables
-let canvas = null;
-let canvasContext = null;
-let roadWidth = null; // set in windows.onload() function
-let laneWidth = null;
+const canvas = document.getElementById('game-canvas');
+const canvasContext = canvas.getContext('2d'); // gets canvas context
+// let roadWidth = null; // set in windows.onload() function
+// let laneWidth = null;
 let chickenX = null; // x coordinate
 let chickenY = null; // y coordinate
 let chickenWidth = 40; // 
@@ -18,6 +22,7 @@ class Vehicles {
   constructor(x, y, width, height, weight, speedX, color) {
     this.x = x;
     this.y = y;
+    this.yCenter = this.y - this.y/2;
     this.width = width;
     this.height = height;
     this.weight = weight;
@@ -27,75 +32,31 @@ class Vehicles {
   }
 }
 
+class Road {
+  constructor() {
+    this.roadWidth = canvas.height / 4;
+    this.laneWidth = this.roadWidth / 3;
+    this.roadCenter = this.roadWidth - this.roadWidth / 2;
+    this.dashLength = canvas.width / 10;
+    this.lineWidth = 3;
+  }
+}
+
 // Create instances of vehicles
 let vehicle = null;
 for (let i = 0; i < 10; i++ ) {
   vehicle = new Vehicles(1200, 400, 60, 40 , 50, normalFlowSpeed, 'blue');
 }
 
+// Create instances of roads
+let road = new Road();
+
 // initial traffic (vehicles on road at the start of the game)
 // onRoad.push(vehicles.shift(0, 1));
 
 // ########################################################################################################################
+// ######################################### CREATE AND MANAGE SHAPES / OBJECTS ######################################################################
 // ########################################################################################################################
-// ########################################################################################################################
-
-
-
-
-// Main Functions - Set Canvas and Draw Everything per setInterval
-window.onload = () => {
-  console.log("Why did the chicken cross the road?");
-  canvas = document.getElementById('game-canvas');
-  canvasContext = canvas.getContext('2d');
-  roadWidth = canvas.height / 4;  // thickness of the road
-  laneWidth = roadWidth / 3; // width of lane in the road (3 lanes per road)
-  
-  const framesPerSecond = 30;
-  setInterval(() => {
-    // moveEverthing();
-    // drawEverything();
-    // isThereCollision();
-    // slowVehicleSpeedEastBound(); 
-  }, 1000 / framesPerSecond);
-
-  setInterval(() => {  // interval for insertion of new cars on the road
-    getOnRoad();  
-    resumeSpeedEastBound(); 
-  }, 2000);
-
-  canvas.addEventListener('mousemove', (event) => {
-    const mousePosition = getMousePosition (event);
-    chickenX = mousePosition.x - chickenWidth/2;
-    chickenY = mousePosition.y - chickenHeight/2; 
-    // drawEverything();   
-    // collisionDetection(); 
-  })
-  
-}
-
-
-// Get Mouse Position
-const getMousePosition = () => {
-  const rect = canvas.getBoundingClientRect();
-  const root = document.documentElement;
-  // Accounts for user scrolling/resizing the page ( '- rect.left - root.scrollLeft')
-  let mouseX = event.clientX - rect.left - root.scrollLeft; // horizontal coordinate of the mouse
-  let mouseY = event.clientY - rect.top - root.scrollTop; // vertical coord
-  return {
-    x: mouseX,
-    y: mouseY
-  }
-}
-
-
-// Remove object from the vehicles[] array and add it to onRoad[] array
-const getOnRoad = () => {
-  if (vehicles.length > 0) {
-    onRoad.push(vehicles.shift(0, 1));
-  }
-}
-
 
 // Draw Vehicles
 const drawVehicle = (vehicle) => {
@@ -104,15 +65,13 @@ const drawVehicle = (vehicle) => {
 }
 
 // Draw Lanes (proportinal to the canvas size)
-const drawLane = (topY) => {
-  const dashLength = canvas.width/10; // length of the dashed center lines
-  const lineWidth = 3; // thickness of the lines
-  drawRect(0, topY, canvas.width, roadWidth, 'gray'); // road tarmac
-  drawRect(0, topY, canvas.width, 5, 'white'); // road line (top)
-  drawRect(0, topY + roadWidth, canvas.width, 5, 'white'); //road line (bottom)
+const drawRoad = (topY) => {
+  drawRect(0, topY, canvas.width, road.roadWidth, 'gray'); // road tarmac
+  drawRect(0, topY, canvas.width, road.lineWidth, 'white'); // road line (top)
+  drawRect(0, topY + road.roadWidth - road.lineWidth, canvas.width, road.lineWidth, 'white'); //road line (bottom)
   for (let i = canvas.width/30; i < canvas.width; i += canvas.width/6 ) {
-    drawRect(i, topY + laneWidth, dashLength, lineWidth, 'white'); // dashed line (top)
-    drawRect(i, topY + laneWidth * 2, dashLength, lineWidth, 'white'); // dashed line (bottom)
+    drawRect(i, topY + road.laneWidth, road.dashLength, road.lineWidth, 'white'); // dashed line (top)
+    drawRect(i, topY + road.laneWidth * 2, road.dashLength, road.lineWidth, 'white'); // dashed line (bottom)
   }
 }
 
@@ -122,6 +81,45 @@ const drawRect = (leftX, topY, width, height, drawColor) => {
   canvasContext.fillRect(leftX, topY, width, height);
 }
 
+// Draw Everything
+const drawEverything = () => {
+  // const roadCenter = road.roadWidth - road.roadWidth/2;
+  // Set top and bottom roads (y) equaly spaced away from the center of the canvas  
+  const topRoadY = (canvas.height / 2) - road.roadCenter - road.roadCenter * 1.5; 
+  const bottomRoadY = (canvas.height / 2) - road.roadCenter + road.roadCenter * 1.5;
+  drawRect(0, 0, canvas.width, canvas.height, 'green'); // draw anvas
+  drawRoad(topRoadY); // top lane
+  drawRoad(bottomRoadY); // bottom lane
+  drawRect(chickenX, chickenY, chickenWidth, chickenHeight, 'yellow'); // draw chicken
+  if (onRoad.length > 0) {
+    onRoad.forEach(element => {  // vehicles of the onRoad array
+      drawVehicle(element);
+    });
+  }
+}
+
+// Remove object from the vehicles[] array and add it to onRoad[] array
+const getOnEastBoundRoad = () => {
+  if (vehicles.length > 0) { // if there are any vehicles available to go on the road
+    const laneNumber = Math.floor(Math.random() * 3) + 1; // num between 1 and 3
+    console.log('laneNumber is ' + laneNumber);
+
+    if (laneNumber === 1) {
+      vehicles[0].y = 200;
+    } else if (laneNumber === 2) {
+      vehicles[0].y = 300;
+    } else if (laneNumber === 3) {
+      vehicles[0].y = 500;
+    }
+    
+    onRoad.push(vehicles.shift(0, 1));
+  }
+}
+
+
+// ########################################################################################################################
+// ######################################### CHECK / ADJUST MOVEMENTS ######################################################################
+// ########################################################################################################################
 
 // Check for Collision
 const isThereCollision = () => {
@@ -162,6 +160,7 @@ const slowVehicleSpeedEastBound = () => {
   }
 }
 
+// Resume Vehicle Speed
 resumeSpeedEastBound = () => {
   if (!istTrafficFlowNormal) {
     onRoad.forEach(vehicle => {
@@ -175,27 +174,24 @@ resumeSpeedEastBound = () => {
   istTrafficFlowNormal = true;
 }
 
-// Draw Everything
-const drawEverything = () => {
-  const topRoad = canvas.height / 5;
-  const bottomRoad = canvas.height / 1.8;
-  drawRect(0, 0, canvas.width, canvas.height, 'green'); // canvas
-  drawLane(topRoad); // top lane
-  drawLane(bottomRoad); // bottom lane
-  drawRect(chickenX, chickenY, chickenWidth, chickenHeight, 'yellow'); // chicken
-  // drawVehicle(canvas.height / 2.6, 'red');
-  // drawVehicle(canvas.height /1.75, 'blue');
-  if (onRoad.length > 0) {
-    onRoad.forEach(element => {  // vehicles
-      element.y = bottomRoad + (roadWidth / 6) - element.height / 2
-      drawVehicle(element);
-    });
+// ########################################################################################################################
+// ############################## ANIMATE AND MAIN GAME FUNCTIONS ###############################################
+// ########################################################################################################################
+
+// Get Mouse Position
+const getMousePosition = () => {
+  const rect = canvas.getBoundingClientRect();
+  const root = document.documentElement;
+  // Accounts for user scrolling/resizing the page ( '- rect.left - root.scrollLeft')
+  let mouseX = event.clientX - rect.left - root.scrollLeft; // horizontal coordinate of the mouse
+  let mouseY = event.clientY - rect.top - root.scrollTop; // vertical coord
+  return {
+    x: mouseX,
+    y: mouseY
   }
 }
 
-
-// Animate
-
+// Animate Function
 function animate() {
   requestAnimationFrame(animate);
   drawEverything();
@@ -203,4 +199,24 @@ function animate() {
   slowVehicleSpeedEastBound(); 
 }
 
-animate();
+// Main Function - Animation, Intervals, Event Listeners
+window.onload = () => {
+  console.log("Why did the chicken cross the road?");
+  // canvas = document.getElementById('game-canvas');
+  // canvasContext = canvas.getContext('2d'); // gets canvas context
+  // roadWidth = canvas.height / 4;  // thickness of the road
+  // laneWidth = roadWidth / 3; // width of lane in the road (3 lanes per road)
+  animate();
+  setInterval(() => {
+    getOnEastBoundRoad(); // insertion of new cars on the road
+    resumeSpeedEastBound(); // resume traffic speed
+  }, 2000);
+
+  canvas.addEventListener('mousemove', (event) => {
+    const mousePosition = getMousePosition(event);
+    chickenX = mousePosition.x - chickenWidth / 2;
+    chickenY = mousePosition.y - chickenHeight / 2;
+  })
+
+}
+
