@@ -1,14 +1,14 @@
 //  Global Variables
 let canvas = null;
 let canvasContext = null;
+let roadWidth = null; // set in windows.onload() function
+let laneWidth = null;
 let chickenX = null; // x coordinate
 let chickenY = null; // y coordinate
 let chickenWidth = 40; // 
 let chickenHeight = 40;
-let vehicleX = null;
-// let vehicleY = null;
-// let vehicleWidth = 80;
-// let vehicleHeight = 40;
+let normalFlowSpeed = 4;
+let istTrafficFlowNormal = true; 
 
 let vehicles = [];  // array to hold vehicles
 let onRoad = []; // array of vehicles that are on the road
@@ -28,21 +28,19 @@ class Vehicles {
 }
 
 // Create instances of vehicles
-let vehicle = new Vehicles(0, 300/2, 40, 80, 10, 3, 'purple');
-vehicle = new Vehicles(0, 400, 30, 50, 10, 3, 'blue');
-
-console.log('vehicles is ' + vehicles);
-onRoad.push(vehicles.shift(0, 1));
-// console.log(vehicles.shift(0, 1));
-console.log('onRoad is' + onRoad);
-
-
-
-const getOnRoad = () => {
-  onRoad.push(vehicles.shift(0, 1));
+let vehicle = null;
+for (let i = 0; i < 10; i++ ) {
+  vehicle = new Vehicles(1200, 400, 60, 40 , 50, normalFlowSpeed, 'blue');
 }
 
-console.log('getOnRoad array has ' + onRoad);
+// initial traffic (vehicles on road at the start of the game)
+// onRoad.push(vehicles.shift(0, 1));
+
+// ########################################################################################################################
+// ########################################################################################################################
+// ########################################################################################################################
+
+
 
 
 // Main Functions - Set Canvas and Draw Everything per setInterval
@@ -50,60 +48,32 @@ window.onload = () => {
   console.log("Why did the chicken cross the road?");
   canvas = document.getElementById('game-canvas');
   canvasContext = canvas.getContext('2d');
-
+  roadWidth = canvas.height / 4;  // thickness of the road
+  laneWidth = roadWidth / 3; // width of lane in the road (3 lanes per road)
+  
   const framesPerSecond = 30;
   setInterval(() => {
     // moveEverthing();
-    drawEverything();
+    // drawEverything();
+    // isThereCollision();
+    // slowVehicleSpeedEastBound(); 
   }, 1000 / framesPerSecond);
 
-  setInterval(() => {
-    
-    
-    if(onRoad.length > 0) {
-      getOnRoad();
-      console.log('gets on the road');
-    }
-   
-  }, 1000);
+  setInterval(() => {  // interval for insertion of new cars on the road
+    getOnRoad();  
+    resumeSpeedEastBound(); 
+  }, 2000);
 
   canvas.addEventListener('mousemove', (event) => {
     const mousePosition = getMousePosition (event);
     chickenX = mousePosition.x - chickenWidth/2;
     chickenY = mousePosition.y - chickenHeight/2; 
-    // drawEverything();    
+    // drawEverything();   
+    // collisionDetection(); 
   })
   
 }
 
-//  ##################  TESTING
-// const init = () => {
-//   vehicles = [];
-//   for (let i = 0; i < 5; i += 1) {
-//     let x = Math.random() * 50; // ' - radius * 2 to keep circle within bounds upon creation of x
-//     let y = Math.random() * 40;
-//     let width = 80;
-//     let height = 40;
-//     let weight = 5;
-//     let speed = Math.random() * 3 + 1;
-
-//     vehicles.push(new Vehicles(x, y, width, height, weight, speed));
-//     console.log(vehicles);
-    
-//     animate();
-//   }
-// }
-
-// function animate() {
-//   requestAnimationFrame(animate);
-  
-//   vehicles.forEach(vehicle => {
-//     drawEverything(vehicle.y, 'white');
-//   });
-// }
-
-
-//  ################# END of TESING
 
 // Get Mouse Position
 const getMousePosition = () => {
@@ -118,20 +88,23 @@ const getMousePosition = () => {
   }
 }
 
-// const moveEverything = () => {
 
-// }
+// Remove object from the vehicles[] array and add it to onRoad[] array
+const getOnRoad = () => {
+  if (vehicles.length > 0) {
+    onRoad.push(vehicles.shift(0, 1));
+  }
+}
 
-// Draw Vehicle
+
+// Draw Vehicles
 const drawVehicle = (vehicle) => {
-  vehicle.x += vehicle.speedX;
+  vehicle.x -= vehicle.speedX;  // vehicle goes to the left
   drawRect(vehicle.x, vehicle.y, vehicle.width, vehicle.height, vehicle.color); 
 }
 
 // Draw Lanes (proportinal to the canvas size)
 const drawLane = (topY) => {
-  const roadWidth = canvas.height/4;  // thickness of the road
-  const laneWidth = roadWidth/3; // width of lane in the road (3 lanes per road)
   const dashLength = canvas.width/10; // length of the dashed center lines
   const lineWidth = 3; // thickness of the lines
   drawRect(0, topY, canvas.width, roadWidth, 'gray'); // road tarmac
@@ -149,26 +122,85 @@ const drawRect = (leftX, topY, width, height, drawColor) => {
   canvasContext.fillRect(leftX, topY, width, height);
 }
 
+
+// Check for Collision
+const isThereCollision = () => {
+  const cX1 = chickenX;
+  const cX2 = chickenX + chickenWidth;
+  const cY1 = chickenY;
+  const cY2 = chickenY + chickenHeight
+  onRoad.forEach(vehicle => {
+    vX1 = vehicle.x;  
+    vX2 = vehicle.x + vehicle.width;
+    vY1 = vehicle.y;
+    vY2 = vehicle.y + vehicle.height;
+    if (cX1 <= vX2 && vX1 <= cX2) {
+        if (cY1 <= vY2 && vY1 <= cY2) {
+        console.log('COLLISION !!!!!! ');  
+        vehicle.speedX = 0;  
+        istTrafficFlowNormal = false;
+        
+      }
+    } 
+  }); 
+}
+
+// Adjust Vehicle Speed
+const slowVehicleSpeedEastBound = () => {  
+  for (let i = 0; i < onRoad.length - 1; i += 1) {
+    // const vX1 = onRoad[i].x;
+    // const vX2 = onRoad[] 
+    const vehicleX1 = onRoad[i].x;
+    const vehicleX2 = vehicleX1 + onRoad[i].width;
+    const vehicleSpeed = onRoad[i].speedX;
+    const nextVehicleX1 = onRoad[i + 1].x;
+
+    if (nextVehicleX1 - vehicleX2 <= 10) { //
+      // console.log('WATCH OUT !!!!');
+      onRoad[i + 1].speedX = vehicleSpeed;
+    }
+  }
+}
+
+resumeSpeedEastBound = () => {
+  if (!istTrafficFlowNormal) {
+    onRoad.forEach(vehicle => {
+      // console.log(checkForCollision());
+      // console.log(checkForCollision());
+      console.log('Resuming speed');     
+      vehicle.speedX = normalFlowSpeed;
+    });
+
+  }
+  istTrafficFlowNormal = true;
+}
+
 // Draw Everything
 const drawEverything = () => {
+  const topRoad = canvas.height / 5;
+  const bottomRoad = canvas.height / 1.8;
   drawRect(0, 0, canvas.width, canvas.height, 'green'); // canvas
-  drawLane(canvas.height/5); // top lane
-  drawLane(canvas.height/1.8); // bottom lane
+  drawLane(topRoad); // top lane
+  drawLane(bottomRoad); // bottom lane
   drawRect(chickenX, chickenY, chickenWidth, chickenHeight, 'yellow'); // chicken
   // drawVehicle(canvas.height / 2.6, 'red');
   // drawVehicle(canvas.height /1.75, 'blue');
   if (onRoad.length > 0) {
-    // getOnRoad();
-      onRoad.forEach(element => {  // vehicles
-      // element.y = 500;
+    onRoad.forEach(element => {  // vehicles
+      element.y = bottomRoad + (roadWidth / 6) - element.height / 2
       drawVehicle(element);
     });
-    console.log('onRoad.lenght is ' + onRoad.length);
-    
   }
-
-  
 }
 
 
-// init();
+// Animate
+
+function animate() {
+  requestAnimationFrame(animate);
+  drawEverything();
+  isThereCollision();
+  slowVehicleSpeedEastBound(); 
+}
+
+animate();
