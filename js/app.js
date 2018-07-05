@@ -25,6 +25,8 @@ class Vehicles {
     this.height = height;
     this.weight = weight;
     this.speedX = speedX;
+    this.directionX = 1; // positive goes from left to right
+    this.velocityX = this.speedX * this.directionX;
     this.color = color;
     vehicles.push(this);
   }
@@ -44,7 +46,7 @@ class Road {
 
 // Create instances of vehicles
 let vehicle = null;
-for (let i = 0; i < 10; i++ ) {
+for (let i = 0; i < 60; i++ ) {
   vehicle = new Vehicles(1200, 400, 60, 40 , 50, normalFlowSpeed, 'blue');
 }
 
@@ -62,7 +64,7 @@ const bottomRoad = new Road((canvas.height / 2) + (canvas.height / 6));
 
 // Draw Vehicles
 const drawVehicle = (vehicle) => {
-  vehicle.x -= vehicle.speedX;  // vehicle goes to the left
+  vehicle.x -= vehicle.speedX;  // adjust x by speedX on each call, gives object a velocity 
   drawRect(vehicle.x, vehicle.y, vehicle.width, vehicle.height, vehicle.color); 
 }
 
@@ -85,10 +87,6 @@ const drawRect = (leftX, topY, width, height, drawColor) => {
 
 // Draw Everything
 const drawEverything = () => {
-  // const roadCenter = road.roadWidth - road.roadWidth/2;
-  // Set top and bottom roads (y) equaly spaced away from the center of the canvas  
-  // const topRoadY = (canvas.height / 2) - road.roadCenter - road.roadCenter * 1.5; 
-  const bottomRoadY = (canvas.height / 2) - topRoad.roadCenter + topRoad.roadCenter * 1.5;
   drawRect(0, 0, canvas.width, canvas.height, 'green'); // draw anvas
   drawRoad(topRoad, topRoad.topYToCenterDraw); // top road
   drawRoad(bottomRoad, bottomRoad.topYToCenterDraw); // bottom road
@@ -100,23 +98,62 @@ const drawEverything = () => {
   }
 }
 
+// Feed Vehicles onto the Road
 // Remove object from the vehicles[] array and add it to onRoad[] array
 const getOnEastBoundRoad = () => {
   if (vehicles.length > 0) { // if there are any vehicles available to go on the road
     const laneNumber = Math.floor(Math.random() * 3) + 1; // num between 1 and 3
     console.log('laneNumber is ' + laneNumber);
-
-    if (laneNumber === 1) {
-      vehicles[0].y = 200;
-    } else if (laneNumber === 2) {
-      vehicles[0].y = 300;
-    } else if (laneNumber === 3) {
-      vehicles[0].y = 500;
+    switch (laneNumber) {
+      case 1:
+        vehicles[0].x = canvas.width;
+        vehicles[0].velocityX *= -1;  // reverses velocity 
+        vehicles[0].y = topRoad.topY - topRoad.laneWidth * 1.25;
+        break;
+      case 2:
+        vehicles[0].x = canvas.width;
+        vehicles[0].velocityX *= -1;  // reverses velocity 
+        vehicles[0].y = topRoad.topY - topRoad.laneWidth * 0.25;
+        break;
+      case 3:
+        vehicles[0].x = canvas.width;
+        vehicles[0].velocityX *= -1;  // reverses velocity 
+        vehicles[0].y = topRoad.topY + topRoad.laneWidth * 0.7
+        break;
+      default:
+        break;
     }
     
     onRoad.push(vehicles.shift(0, 1));
   }
 }
+
+const getOnWestBoundRoad = () => {
+  if (vehicles.length > 0) { // if there are any vehicles available to go on the road
+    const laneNumber = Math.floor(Math.random() * 3) + 1; // num between 1 and 3
+    console.log('laneNumber is ' + laneNumber);
+    switch (laneNumber) {
+      case 1:
+        vehicles[0].x = 0;
+        // vehicles[0].vehicle = -vehicles[0].velocityX
+        vehicles[0].y = topRoad.topY + topRoad.laneWidth * 2.7
+        break;
+      case 2:
+        vehicles[0].x = 0;
+        vehicles[0].y = topRoad.topY + topRoad.laneWidth * 3.7
+        break;
+      case 3:
+        vehicles[0].x = 0;
+        vehicles[0].y = topRoad.topY + topRoad.laneWidth * 4.7
+        break;
+      default:
+        break;
+    }
+
+    onRoad.push(vehicles.shift(0, 1));
+  }
+}
+
 
 
 // ########################################################################################################################
@@ -138,8 +175,7 @@ const isThereCollision = () => {
         if (cY1 <= vY2 && vY1 <= cY2) {
         console.log('COLLISION !!!!!! ');  
         vehicle.speedX = 0;  
-        istTrafficFlowNormal = false;
-        
+        istTrafficFlowNormal = false;        
       }
     } 
   }); 
@@ -171,7 +207,6 @@ resumeSpeedEastBound = () => {
       console.log('Resuming speed');     
       vehicle.speedX = normalFlowSpeed;
     });
-
   }
   istTrafficFlowNormal = true;
 }
@@ -204,15 +239,16 @@ function animate() {
 // Main Function - Animation, Intervals, Event Listeners
 window.onload = () => {
   console.log("Why did the chicken cross the road?");
-  // canvas = document.getElementById('game-canvas');
-  // canvasContext = canvas.getContext('2d'); // gets canvas context
-  // roadWidth = canvas.height / 4;  // thickness of the road
-  // laneWidth = roadWidth / 3; // width of lane in the road (3 lanes per road)
   animate();
+  const framesPerSecond = 2;
   setInterval(() => {
     getOnEastBoundRoad(); // insertion of new cars on the road
+    // getOnWestBoundRoad();
+  }, 1000 / framesPerSecond);
+
+  setInterval(() => {
     resumeSpeedEastBound(); // resume traffic speed
-  }, 2000);
+  }, 3000);
 
   canvas.addEventListener('mousemove', (event) => {
     const mousePosition = getMousePosition(event);
