@@ -5,8 +5,6 @@
 //  Global Variables
 const canvas = document.getElementById('game-canvas');
 const canvasContext = canvas.getContext('2d'); // gets canvas context
-// let roadWidth = null; // set in windows.onload() function
-// let laneWidth = null;
 let chickenX = null; // x coordinate
 let chickenY = null; // y coordinate
 let chickenWidth = 40; // 
@@ -33,12 +31,13 @@ class Vehicles {
 }
 
 class Road {
-  constructor() {
+  constructor(centerY) {
     this.roadWidth = canvas.height / 4;
     this.laneWidth = this.roadWidth / 3;
     this.roadCenter = this.roadWidth - this.roadWidth / 2;
     this.dashLength = canvas.width / 10;
     this.lineWidth = 3;
+    this.centerY = centerY;
   }
 }
 
