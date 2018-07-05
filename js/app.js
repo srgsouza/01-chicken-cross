@@ -10,7 +10,7 @@ let chickenY = null; // y coordinate
 let chickenWidth = 40; // 
 let chickenHeight = 40;
 let normalFlowSpeed = 4;
-let istTrafficFlowNormal = true; 
+let isWestTrafficFlowNormal = true; 
 
 const vehicles = [];  // array to hold vehicles
 // const westVehicles = [];
@@ -184,17 +184,28 @@ const isThereCollision = () => {
         if (cY1 <= vY2 && vY1 <= cY2) {
         console.log('COLLISION !!!!!! ');  
         vehicle.speedX = 0;  
-        istTrafficFlowNormal = false;        
+        isWestTrafficFlowNormal = false;        
       }
     } 
+  });
+  eastBoundRoad.forEach(vehicle => {
+    vX1 = vehicle.x;
+    vX2 = vehicle.x + vehicle.width;
+    vY1 = vehicle.y;
+    vY2 = vehicle.y + vehicle.height;
+    if (cX1 <= vX2 && vX1 <= cX2) {
+      if (cY1 <= vY2 && vY1 <= cY2) {
+        console.log('COLLISION !!!!!! ');
+        vehicle.speedX = 0;
+        isEastTrafficFlowNormal = false;
+      }
+    }
   }); 
 }
 
 // Adjust Vehicle Speed
 const slowVehicleSpeedEastBound = () => {  
   for (let i = 0; i < westBoundRoad.length - 1; i += 1) {
-    // const vX1 = westBoundRoad[i].x;
-    // const vX2 = westBoundRoad[] 
     const vehicleX1 = westBoundRoad[i].x;
     const vehicleX2 = vehicleX1 + westBoundRoad[i].width;
     const vehicleSpeed = westBoundRoad[i].speedX;
@@ -209,7 +220,7 @@ const slowVehicleSpeedEastBound = () => {
 
 // Resume Vehicle Speed
 resumeSpeedEastBound = () => {
-  if (!istTrafficFlowNormal) {
+  if (!isWestTrafficFlowNormal) {
     westBoundRoad.forEach(vehicle => {
       // console.log(checkForCollision());
       // console.log(checkForCollision());
@@ -217,7 +228,7 @@ resumeSpeedEastBound = () => {
       vehicle.speedX = normalFlowSpeed;
     });
   }
-  istTrafficFlowNormal = true;
+  isWestTrafficFlowNormal = true;
 }
 
 // ########################################################################################################################
