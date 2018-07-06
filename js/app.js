@@ -6,6 +6,13 @@
 const canvas = document.getElementById('game-canvas');
 const canvasContext = canvas.getContext('2d'); // gets canvas context
 
+  chickenImage = new Image();
+  chickenImage.src = 'images/chick.png';
+  
+
+
+
+
 let normalFlowSpeed = 5;
 let isWestTrafficFlowNormal = true; 
 let isEastTrafficFlowNormal = true; 
@@ -23,13 +30,10 @@ class Chicken {
     this.chickenHeight = 15;
     this.chickenSpeed = 8;
     this.score = 0;
+    this.isHit = false;
     this.sideOfRoad = 'bottom';
     this.lastLocation = 'bottom';
-    // let chickenImage = new Image();
-    // chickenImage.src = "chick.png";
-    // chickenImage.onload = function () {
-    //   canvasContext.drawImage(chickenImage, 200, 200);
-    // };
+
   }
   checkScore() {
     if (this.chickenY < 155) {
@@ -42,8 +46,16 @@ class Chicken {
       this.lastLocation = this.sideOfRoad;
     }    
   }
+  isDead() {
+    if (chicken.isHit) {
+      chicken.resetScore();
+    }
+    console.log('is hit? ' + chicken.isHit);
+    
+  }
   resetScore() {
     this.score = 0;
+    this.isHit = false;
     this.sideOfRoad = 'bottom'
     this.lastLocation = 'bottom'
     this.chickenX = canvas.width / 2; 
@@ -124,6 +136,9 @@ const drawVehicleEastBound = (vehicle) => {
  
 // Draw Lanes (proportinal to the canvas size) - takes a road object and the Y coordinate as parameters
 const drawRoad = (road, topY) => {
+  // canvasContext.drawImage(chickenImage, 400, 200);
+  
+  canvasContext.font = "bold 16pt Courier";
   canvasContext.fillText('SCORE: ' + chicken.score, 200, 80);
   drawRect(0, topY, canvas.width, road.roadWidth, 'gray'); // road tarmac
   drawRect(0, topY, canvas.width, road.lineWidth, 'white'); // road line (top)
@@ -143,7 +158,7 @@ const drawRect = (leftX, topY, width, height, drawColor) => {
 // Draw Everything
 const drawEverything = () => {
 
-  drawRect(0, 0, canvas.width, canvas.height, 'green'); // draw anvas
+  drawRect(0, 0, canvas.width, canvas.height, 'green'); // draw canvas
   drawRoad(topRoad, topRoad.topYToCenterDraw); // top road
   drawRoad(bottomRoad, bottomRoad.topYToCenterDraw); // bottom road
   drawRect(chicken.chickenX, chicken.chickenY, chicken.chickenWidth, chicken.chickenHeight, 'yellow'); // draw chicken
@@ -158,6 +173,7 @@ const drawEverything = () => {
       drawVehicleEastBound(element);
     });
   }
+  canvasContext.drawImage(chickenImage, chicken.chickenX - 10, chicken.chickenY - 9); // draw chicken image
 }
 
 // Feed Vehicles onto the Road
@@ -201,9 +217,6 @@ const getOnEastBoundRoad = () => {
     switch (laneNumber) { 
       case 1:
         vehicles[0].x = 0 - vehicles[0].width;
-        // vehicles[0].vehicle = -vehicles[0].velocityX
-        console.log(vehicles[0].x);
-        // vehicles[0].velocityX *= -1;  // reverses velocity 
         vehicles[0].y = topRoad.topY + topRoad.laneWidth * 2.7
         break;
       case 2:
@@ -246,9 +259,11 @@ const isThereCollision = () => {
         if (cY1 <= vY2 && vY1 <= cY2) {
         console.log('COLLISION !!!!!! ');  
         vehicle.speedX = 0;  
-        isWestTrafficFlowNormal = false;        
+        isWestTrafficFlowNormal = false;
+        chicken.isHit = true;       
       }
     } 
+    
   });
   eastBoundRoad.forEach(vehicle => {
     vX1 = vehicle.x;
@@ -260,8 +275,9 @@ const isThereCollision = () => {
         console.log('COLLISION !!!!!! ');
         vehicle.speedX = 0;
         isEastTrafficFlowNormal = false;
+        chicken.isHit = true;       
       }
-    }
+    } 
   }); 
 }
 
@@ -274,7 +290,6 @@ const slowVehicleSpeedWestBound = () => {
     const nextVehicleX1 = westBoundRoad[i + 1].x;
 
     if (nextVehicleX1 - vehicleX2 <= 10) { //
-      // console.log('WATCH OUT !!!!');
       westBoundRoad[i + 1].speedX = vehicleSpeed;
     }
   }
@@ -350,21 +365,21 @@ window.onload = () => {
   setInterval(() => {
     getOnWestBoundRoad();
     getOnEastBoundRoad(); // insertion of new cars on the road
+    chicken.checkScore();
   }, 2000 / framesPerSecond);
 
   setInterval(() => {
-    chicken.checkScore();
+    
+    chicken.isDead();
     resumeSpeedWestBound(); // resume traffic speed if no collision
     resumeSpeedEastBound(); // resume traffic speed if no collision
-  }, 1500);
+  }, 5000);
 
   // Listener for mouse movements
   canvas.addEventListener('mousemove', (event) => {
     const mousePosition = getMousePosition(event);
     chicken.chickenX = mousePosition.x - chicken.chickenWidth / 2;
-    chicken.chickenY = mousePosition.y - chicken.chickenHeight / 2;
-    console.log('chickenY is ' + chicken.chickenY);
-    
+    chicken.chickenY = mousePosition.y - chicken.chickenHeight / 2;    
   })
 
   // Listener for arrow keys
