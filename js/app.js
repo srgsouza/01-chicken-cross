@@ -19,14 +19,35 @@ class Chicken {
   constructor() {
     this.chickenX = canvas.width / 2; // x coordinate
     this.chickenY = canvas.height - 100; // y coordinate
-    this.chickenWidth = 40; // 
-    this.chickenHeight = 40;
+    this.chickenWidth = 15; // 
+    this.chickenHeight = 15;
     this.chickenSpeed = 8;
+    this.score = 0;
+    this.sideOfRoad = 'bottom';
+    this.lastLocation = 'bottom';
     // let chickenImage = new Image();
     // chickenImage.src = "chick.png";
     // chickenImage.onload = function () {
     //   canvasContext.drawImage(chickenImage, 200, 200);
     // };
+  }
+  checkScore() {
+    if (this.chickenY < 155) {
+      this.sideOfRoad = 'top';
+    } else if (this.chickenY > 630) {
+      this.sideOfRoad = 'bottom';
+    }
+    if (this.lastLocation != this.sideOfRoad) { 
+      this.score += 1;
+      this.lastLocation = this.sideOfRoad;
+    }    
+  }
+  resetScore() {
+    this.score = 0;
+    this.sideOfRoad = 'bottom'
+    this.lastLocation = 'bottom'
+    this.chickenX = canvas.width / 2; 
+    this.chickenY = canvas.height - 100;
   }
   moveLeft() {
     this.chickenX -= this.chickenSpeed;
@@ -103,6 +124,7 @@ const drawVehicleEastBound = (vehicle) => {
  
 // Draw Lanes (proportinal to the canvas size) - takes a road object and the Y coordinate as parameters
 const drawRoad = (road, topY) => {
+  canvasContext.fillText('SCORE: ' + chicken.score, 200, 80);
   drawRect(0, topY, canvas.width, road.roadWidth, 'gray'); // road tarmac
   drawRect(0, topY, canvas.width, road.lineWidth, 'white'); // road line (top)
   drawRect(0, topY + road.roadWidth - road.lineWidth, canvas.width, road.lineWidth, 'white'); //road line (bottom)
@@ -120,6 +142,7 @@ const drawRect = (leftX, topY, width, height, drawColor) => {
 
 // Draw Everything
 const drawEverything = () => {
+
   drawRect(0, 0, canvas.width, canvas.height, 'green'); // draw anvas
   drawRoad(topRoad, topRoad.topYToCenterDraw); // top road
   drawRoad(bottomRoad, bottomRoad.topYToCenterDraw); // bottom road
@@ -330,6 +353,7 @@ window.onload = () => {
   }, 2000 / framesPerSecond);
 
   setInterval(() => {
+    chicken.checkScore();
     resumeSpeedWestBound(); // resume traffic speed if no collision
     resumeSpeedEastBound(); // resume traffic speed if no collision
   }, 1500);
@@ -339,6 +363,8 @@ window.onload = () => {
     const mousePosition = getMousePosition(event);
     chicken.chickenX = mousePosition.x - chicken.chickenWidth / 2;
     chicken.chickenY = mousePosition.y - chicken.chickenHeight / 2;
+    console.log('chickenY is ' + chicken.chickenY);
+    
   })
 
   // Listener for arrow keys
