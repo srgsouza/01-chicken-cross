@@ -261,9 +261,10 @@ const isThereCollision = () => {
         vehicle.speedX = 0;  
         isWestTrafficFlowNormal = false;
         chicken.isHit = true;       
-      }
-    } 
-    
+      } else {
+        chicken.isHit = false;
+      } 
+    }   
   });
   eastBoundRoad.forEach(vehicle => {
     vX1 = vehicle.x;
@@ -276,7 +277,9 @@ const isThereCollision = () => {
         vehicle.speedX = 0;
         isEastTrafficFlowNormal = false;
         chicken.isHit = true;       
-      }
+      } else {
+        chicken.isHit = false;
+      } 
     } 
   }); 
 }
@@ -369,9 +372,11 @@ window.onload = () => {
   }, 2000 / framesPerSecond);
 
   setInterval(() => {
-    
     chicken.isDead();
-    resumeSpeedWestBound(); // resume traffic speed if no collision
+  }, 1000);
+
+  setInterval(() => {
+     resumeSpeedWestBound(); // resume traffic speed if no collision
     resumeSpeedEastBound(); // resume traffic speed if no collision
   }, 5000);
 
