@@ -5,20 +5,43 @@
 //  Global Variables
 const canvas = document.getElementById('game-canvas');
 const canvasContext = canvas.getContext('2d'); // gets canvas context
-let chickenX = null; // x coordinate
-let chickenY = null; // y coordinate
-let chickenWidth = 40; // 
-let chickenHeight = 40;
+
 let normalFlowSpeed = 2;
 let isWestTrafficFlowNormal = true; 
 let isEastTrafficFlowNormal = true; 
 
 const vehicles = [];  // array to hold vehicles
-// const westVehicles = [];
-let westBoundRoad = []; // array of vehicles that go on the westBound road
+const westBoundRoad = []; // array of vehicles that go on the westBound road
 let eastBoundRoad = []; // array of vehicles that go on the westBound road
 
 // Objects
+class Chicken {
+  constructor() {
+    this.chickenX = canvas.width / 2; // x coordinate
+    this.chickenY = canvas.height - 100; // y coordinate
+    this.chickenWidth = 40; // 
+    this.chickenHeight = 40;
+    this.chickenSpeed = 6;
+    // let chickenImage = new Image();
+    // chickenImage.src = "chick.png";
+    // chickenImage.onload = function () {
+    //   canvasContext.drawImage(chickenImage, 200, 200);
+    // };
+  }
+  moveLeft() {
+    this.chickenX -= this.chickenSpeed;
+  }
+  moveRight() {
+    this.chickenX += this.chickenSpeed;
+  }
+  moveDown() {
+    this.chickenY += this.chickenSpeed;
+  }
+  moveUp() {
+    this.chickenY -= this.chickenSpeed;
+  }
+}
+
 class Vehicles {
   constructor(x, y, width, height, weight, speedX, color) {
     this.x = x;
@@ -46,6 +69,9 @@ class Road {
     this.topYToCenterDraw = topY - this.roadWidth / 2;  
   }
 }
+
+// Create instance of chicken
+const chicken = new Chicken();
 
 // Create instances of vehicles
 let vehicle = null;
@@ -97,7 +123,7 @@ const drawEverything = () => {
   drawRect(0, 0, canvas.width, canvas.height, 'green'); // draw anvas
   drawRoad(topRoad, topRoad.topYToCenterDraw); // top road
   drawRoad(bottomRoad, bottomRoad.topYToCenterDraw); // bottom road
-  drawRect(chickenX, chickenY, chickenWidth, chickenHeight, 'yellow'); // draw chicken
+  drawRect(chicken.chickenX, chicken.chickenY, chicken.chickenWidth, chicken.chickenHeight, 'yellow'); // draw chicken
   if (westBoundRoad.length > 0) {
     westBoundRoad.forEach(element => {  // vehicles of the westBoundRoad array
       drawVehicleWestBound(element);
@@ -134,8 +160,7 @@ const getOnWestBoundRoad = () => {
         break;
       default:
         break;
-    }
-    
+    }   
     westBoundRoad.push(vehicles.shift(0, 1));
   }
 }
@@ -172,10 +197,10 @@ const getOnEastBoundRoad = () => {
 
 // Check for Collision
 const isThereCollision = () => {
-  const cX1 = chickenX;
-  const cX2 = chickenX + chickenWidth;
-  const cY1 = chickenY;
-  const cY2 = chickenY + chickenHeight
+  const cX1 = chicken.chickenX;
+  const cX2 = chicken.chickenX + chicken.chickenWidth;
+  const cY1 = chicken.chickenY;
+  const cY2 = chicken.chickenY + chicken.chickenHeight
   westBoundRoad.forEach(vehicle => {
     vX1 = vehicle.x;  
     vX2 = vehicle.x + vehicle.width;
@@ -287,6 +312,7 @@ function animate() {
 // Main Function - Animation, Intervals, Event Listeners
 window.onload = () => {
   console.log("Why did the chicken cross the road?");
+
   animate();
   const framesPerSecond = 2;
   setInterval(() => {
@@ -295,15 +321,30 @@ window.onload = () => {
   }, 2000 / framesPerSecond);
 
   setInterval(() => {
-    resumeSpeedWestBound(); // resume traffic speed
-    resumeSpeedEastBound(); // resume traffic speed
+    resumeSpeedWestBound(); // resume traffic speed if no collision
+    resumeSpeedEastBound(); // resume traffic speed if no collision
   }, 2000);
+
 
   canvas.addEventListener('mousemove', (event) => {
     const mousePosition = getMousePosition(event);
-    chickenX = mousePosition.x - chickenWidth / 2;
-    chickenY = mousePosition.y - chickenHeight / 2;
+    chicken.chickenX = mousePosition.x - chicken.chickenWidth / 2;
+    chicken.chickenY = mousePosition.y - chicken.chickenHeight / 2;
+  })
+
+  $(document).keydown(function (e) {
+    let keyPressed = e.which;
+    console.log(keyPressed);
+    
+    if (keyPressed == 37) {
+      chicken.moveLeft();      
+    } else if (keyPressed == 39) {
+      chicken.moveRight();
+    } else if (keyPressed == 38) {
+      chicken.moveUp();
+    } else if (keyPressed == 40) {
+      chicken.moveDown();
+    }
   })
 
 }
-
