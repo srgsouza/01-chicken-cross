@@ -6,7 +6,7 @@
 const canvas = document.getElementById('game-canvas');
 const canvasContext = canvas.getContext('2d'); // gets canvas context
 
-let normalFlowSpeed = 2;
+let normalFlowSpeed = 5;
 let isWestTrafficFlowNormal = true; 
 let isEastTrafficFlowNormal = true; 
 
@@ -21,7 +21,7 @@ class Chicken {
     this.chickenY = canvas.height - 100; // y coordinate
     this.chickenWidth = 40; // 
     this.chickenHeight = 40;
-    this.chickenSpeed = 6;
+    this.chickenSpeed = 8;
     // let chickenImage = new Image();
     // chickenImage.src = "chick.png";
     // chickenImage.onload = function () {
@@ -142,7 +142,7 @@ const drawEverything = () => {
 const getOnWestBoundRoad = () => {
   if (vehicles.length > 0) { // if there are any vehicles available to go on the road
     const laneNumber = Math.floor(Math.random() * 3) + 1; // num between 1 and 3
-    switch (laneNumber) {
+    switch (laneNumber) { // insert vehicle onto a random lane
       case 1:
         vehicles[0].x = canvas.width;
         // vehicles[0].velocityX *= -1;  // reverses velocity 
@@ -164,17 +164,18 @@ const getOnWestBoundRoad = () => {
     westBoundRoad.push(vehicles.shift(0, 1));
   } else {
     westBoundRoad.forEach(vehicle => {
-      if ((vehicle.x + vehicle.width) < 0) { // vehicle goes back to vehicles array if reaches the end of the road
+      if ((vehicle.x + vehicle.width) < 0) { // vehicle goes back to vehicles[] array if reaches the end of the road
         vehicles.push(westBoundRoad.shift(0, 1))
       }
     });
   }
 }
 
+// same as getOnWestBoundRoad, but with some reversed functionalities
 const getOnEastBoundRoad = () => {
-  if (vehicles.length > 0) { // if there are any vehicles available to go on the road
-    const laneNumber = Math.floor(Math.random() * 3) + 1; // num between 1 and 3
-    switch (laneNumber) {
+  if (vehicles.length > 0) { 
+    const laneNumber = Math.floor(Math.random() * 3) + 1; 
+    switch (laneNumber) { 
       case 1:
         vehicles[0].x = 0 - vehicles[0].width;
         // vehicles[0].vehicle = -vehicles[0].velocityX
@@ -274,8 +275,6 @@ const slowVehicleSpeedEastBound = () => {
 resumeSpeedWestBound = () => {
   if (!isWestTrafficFlowNormal) {
     westBoundRoad.forEach(vehicle => {
-      // console.log(checkForCollision());
-      // console.log(checkForCollision());
       console.log('Resuming speed Westbound');     
       vehicle.speedX = normalFlowSpeed;
     });
@@ -287,8 +286,6 @@ resumeSpeedWestBound = () => {
 resumeSpeedEastBound = () => {
   if (!isEastTrafficFlowNormal) {
     eastBoundRoad.forEach(vehicle => {
-      // console.log(checkForCollision());
-      // console.log(checkForCollision());
       console.log('Resuming speed Eastbound');
       vehicle.speedX = normalFlowSpeed;
     });
@@ -335,7 +332,7 @@ window.onload = () => {
   setInterval(() => {
     resumeSpeedWestBound(); // resume traffic speed if no collision
     resumeSpeedEastBound(); // resume traffic speed if no collision
-  }, 2000);
+  }, 1500);
 
   // Listener for mouse movements
   canvas.addEventListener('mousemove', (event) => {
