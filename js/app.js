@@ -9,8 +9,9 @@ let chickenX = null; // x coordinate
 let chickenY = null; // y coordinate
 let chickenWidth = 40; // 
 let chickenHeight = 40;
-let normalFlowSpeed = 4;
+let normalFlowSpeed = 2;
 let isWestTrafficFlowNormal = true; 
+let isEastTrafficFlowNormal = true; 
 
 const vehicles = [];  // array to hold vehicles
 // const westVehicles = [];
@@ -49,7 +50,7 @@ class Road {
 // Create instances of vehicles
 let vehicle = null;
 for (let i = 0; i < 60; i++ ) {
-  vehicle = new Vehicles(1200, 400, 60, 40 , 50, normalFlowSpeed, 'blue');
+  vehicle = new Vehicles(0, 400, 60, 40 , 50, normalFlowSpeed, 'blue');
 }
 
 // Create instances of roads
@@ -144,18 +145,18 @@ const getOnEastBoundRoad = () => {
     const laneNumber = Math.floor(Math.random() * 3) + 1; // num between 1 and 3
     switch (laneNumber) {
       case 1:
-        vehicles[0].x = 0;
+        vehicles[0].x = 0 - vehicles[0].width;
         // vehicles[0].vehicle = -vehicles[0].velocityX
         console.log(vehicles[0].x);
         // vehicles[0].velocityX *= -1;  // reverses velocity 
         vehicles[0].y = topRoad.topY + topRoad.laneWidth * 2.7
         break;
       case 2:
-        vehicles[0].x = 0;
+        vehicles[0].x = 0 - vehicles[0].width;
         vehicles[0].y = topRoad.topY + topRoad.laneWidth * 3.7
         break;
       case 3:
-        vehicles[0].x = 0;
+        vehicles[0].x = 0 - vehicles[0].width;
         vehicles[0].y = topRoad.topY + topRoad.laneWidth * 4.7
         break;
       default:
@@ -204,7 +205,7 @@ const isThereCollision = () => {
 }
 
 // Adjust Vehicle Speed
-const slowVehicleSpeedEastBound = () => {  
+const slowVehicleSpeedWestBound = () => {  
   for (let i = 0; i < westBoundRoad.length - 1; i += 1) {
     const vehicleX1 = westBoundRoad[i].x;
     const vehicleX2 = vehicleX1 + westBoundRoad[i].width;
@@ -218,19 +219,45 @@ const slowVehicleSpeedEastBound = () => {
   }
 }
 
+// Adjust Vehicle Speed
+const slowVehicleSpeedEastBound = () => {
+  for (let i = 0; i < eastBoundRoad.length - 1; i += 1) {
+    const vehicleX1 = eastBoundRoad[i].x;
+    const vehicleSpeed = eastBoundRoad[i].speedX;
+    const nextVehicleX2 = eastBoundRoad[i + 1].x + eastBoundRoad[i + 1].width;
+
+    if (vehicleX1 - nextVehicleX2 <= 10) { //
+      // console.log('WATCH OUT !!!!');
+      eastBoundRoad[i + 1].speedX = vehicleSpeed;
+    }
+  }
+}
+
 // Resume Vehicle Speed
-resumeSpeedEastBound = () => {
+resumeSpeedWestBound = () => {
   if (!isWestTrafficFlowNormal) {
     westBoundRoad.forEach(vehicle => {
       // console.log(checkForCollision());
       // console.log(checkForCollision());
-      console.log('Resuming speed');     
+      console.log('Resuming speed Westbound');     
       vehicle.speedX = normalFlowSpeed;
     });
   }
   isWestTrafficFlowNormal = true;
 }
 
+// Resume Vehicle Speed
+resumeSpeedEastBound = () => {
+  if (!isEastTrafficFlowNormal) {
+    eastBoundRoad.forEach(vehicle => {
+      // console.log(checkForCollision());
+      // console.log(checkForCollision());
+      console.log('Resuming speed Eastbound');
+      vehicle.speedX = normalFlowSpeed;
+    });
+  }
+  isEastTrafficFlowNormal = true;
+}
 // ########################################################################################################################
 // ############################## ANIMATE AND MAIN GAME FUNCTIONS ###############################################
 // ########################################################################################################################
@@ -253,7 +280,8 @@ function animate() {
   requestAnimationFrame(animate);
   drawEverything();
   isThereCollision();
-  slowVehicleSpeedEastBound(); 
+  slowVehicleSpeedWestBound();
+  slowVehicleSpeedEastBound();  
 }
 
 // Main Function - Animation, Intervals, Event Listeners
@@ -264,9 +292,10 @@ window.onload = () => {
   setInterval(() => {
     getOnWestBoundRoad();
     getOnEastBoundRoad(); // insertion of new cars on the road
-  }, 1000 / framesPerSecond);
+  }, 2000 / framesPerSecond);
 
   setInterval(() => {
+    resumeSpeedWestBound(); // resume traffic speed
     resumeSpeedEastBound(); // resume traffic speed
   }, 2000);
 
