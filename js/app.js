@@ -162,6 +162,12 @@ const getOnWestBoundRoad = () => {
         break;
     }   
     westBoundRoad.push(vehicles.shift(0, 1));
+  } else {
+    westBoundRoad.forEach(vehicle => {
+      if ((vehicle.x + vehicle.width) < 0) { // vehicle goes back to vehicles array if reaches the end of the road
+        vehicles.push(westBoundRoad.shift(0, 1))
+      }
+    });
   }
 }
 
@@ -188,6 +194,12 @@ const getOnEastBoundRoad = () => {
         break;
     }
     eastBoundRoad.push(vehicles.shift(0, 1));
+  } else {
+    eastBoundRoad.forEach(vehicle => {
+      if (vehicle.x > canvas.width) { // 
+        vehicles.push(eastBoundRoad.shift(0, 1))
+      }
+    });
   }
 }
 
@@ -325,17 +337,17 @@ window.onload = () => {
     resumeSpeedEastBound(); // resume traffic speed if no collision
   }, 2000);
 
-
+  // Listener for mouse movements
   canvas.addEventListener('mousemove', (event) => {
     const mousePosition = getMousePosition(event);
     chicken.chickenX = mousePosition.x - chicken.chickenWidth / 2;
     chicken.chickenY = mousePosition.y - chicken.chickenHeight / 2;
   })
 
-  $(document).keydown(function (e) {
-    let keyPressed = e.which;
-    console.log(keyPressed);
-    
+  // Listener for arrow keys
+  // canvas.addEventListener('keydown')
+  $(document).keydown( (e) => {
+    let keyPressed = e.which;    
     if (keyPressed == 37) {
       chicken.moveLeft();      
     } else if (keyPressed == 39) {
