@@ -6,8 +6,8 @@
 const canvas = document.getElementById('game-canvas');
 const canvasContext = canvas.getContext('2d'); // gets canvas context
 
-  chickenImage = new Image();
-  chickenImage.src = 'images/chick.png';
+  // chickenImage = new Image();
+  // chickenImage.src = 'images/chick.png';
   
 
 
@@ -33,6 +33,8 @@ class Chicken {
     this.isHit = false;
     this.sideOfRoad = 'bottom';
     this.lastLocation = 'bottom';
+    this.chickenImage = new Image();
+    this.chickenImage.src = 'images/chick.png';
 
   }
   checkScore() {
@@ -173,7 +175,7 @@ const drawEverything = () => {
       drawVehicleEastBound(element);
     });
   }
-  canvasContext.drawImage(chickenImage, chicken.chickenX - 10, chicken.chickenY - 9); // draw chicken image
+  canvasContext.drawImage(chicken.chickenImage, chicken.chickenX - 10, chicken.chickenY - 9); // draw chicken image
 }
 
 // Feed Vehicles onto the Road
@@ -373,7 +375,7 @@ window.onload = () => {
 
   setInterval(() => {
     chicken.isDead();
-  }, 1000);
+  }, 500);
 
   setInterval(() => {
      resumeSpeedWestBound(); // resume traffic speed if no collision
